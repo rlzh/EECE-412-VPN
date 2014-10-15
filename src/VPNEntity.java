@@ -46,7 +46,6 @@ public class VPNEntity {
 	public enum DataReceiveState {
 		Unsign,
 		Decrypt,
-		Receive,
 		Idle,
 	}
 	
@@ -85,10 +84,11 @@ public class VPNEntity {
 	private ConnectionSetupHelper setupHelper;
 	private Thread setupHelperThread;
 	
+	// step through send/receive variables
 	public DataSendState dataSendState = DataSendState.Idle;
 	public DataReceiveState dataReceiveState = DataReceiveState.Idle;
 	public Boolean stepThroughReceive = false;
-	public byte[] receivedData = new byte[0];
+	private byte[] receivedBytes = new byte[0];
 	
 	public VPNEntity(InstanceType instanceType, String ipAddress, int portNumber, String sharedSecret) {
 		this.type = instanceType;
@@ -513,6 +513,10 @@ public class VPNEntity {
 		this.state = state;
 	}
 	
+	public void setReceivedBytes(byte[] b) {
+		this.receivedBytes = b;
+	}
+	
 	public Socket getConnection() {
 		return this.connection;
 	}
@@ -543,5 +547,9 @@ public class VPNEntity {
 	
 	public ConnectionState getConnectionState() {
 		return this.state;
+	}
+	
+	public byte[] getReceivedBytes() {
+		return this.receivedBytes;
 	}
 }

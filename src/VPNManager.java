@@ -19,6 +19,13 @@ public class VPNManager {
 		this.vpnInstance = null;
 	}
 	
+	/**
+	 * Takes input from gui and creates & sets up vpn instance
+	 * @param instanceType
+	 * @param ipAddress
+	 * @param portNumber
+	 * @param sharedSecret
+	 */
 	public void createVPNInstance(VPNEntity.InstanceType instanceType, String ipAddress, int portNumber, String sharedSecret) {
 		
 		switch(instanceType) {
@@ -44,37 +51,9 @@ public class VPNManager {
 
 		ConnectionSetupHelper helper = new ConnectionSetupHelper(this.vpnInstance, this.ui);
 		this.vpnInstance.setSetupHelper(helper);
+		
+		// begin setting up instance
 		setupVPNInstance();
-	}
-	
-	private void setupVPNInstance() {
-		this.logHeader("SETUP");
-		this.log("Setting up vpn instance...");
-		this.log("Generating symmetric key...");
-		try {
-			log("The symmetric key is: " + this.vpnInstance.calcSymmetricKey());
-		} catch (NoSuchAlgorithmException e) {
-			//e.printStackTrace();
-			this.logError(e.toString());
-		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			this.logError(e.toString());
-		}
-		
-		this.log("Generating asymmetric key...");
-		try {
-			KeyPair kp = this.vpnInstance.calcAsymmetricKey();
-			log("The public key is: " + kp.getPublic().toString());
-			log("The private key is: " + kp.getPrivate().toString());
-		} catch (NoSuchAlgorithmException e1) {
-			// TODO Auto-generated catch block
-			//e1.printStackTrace();
-			this.logError(e1.toString());
-		}
-		
-		this.log("Creating thread to setup connection...");
-		this.vpnInstance.setupConnection();
 	}
 	
 	public VPNEntity getVPNInstance() {
@@ -86,18 +65,10 @@ public class VPNManager {
 		this.ui.open();
 	}
 	
-	private void log(String msg) {
-		this.ui.logMessage(msg);
-	}
-	
-	private void logError(String msg) {
-		this.ui.logError(msg);
-	}
-	
-	private void logHeader(String header) {
-		this.ui.logHeader(header);
-	}
-	
+	/**
+	 * Sends signed encrypted message
+	 * @param message
+	 */
 	public void sendMessage(String message) {
 		try {
 			log("Preparing to send data: " + "\"" + message + "\"");
@@ -123,6 +94,10 @@ public class VPNManager {
 		}
 	}
 	
+	/**
+	 * Steps through process of sending encrypted message
+	 * @param message
+	 */
 	public void setupThroughSend(String message) {
 		byte[] encryptedData = new byte[0];
 		byte[] signedEncryptedData = new byte[0];
@@ -172,14 +147,17 @@ public class VPNManager {
 		}
 	}
 	
+	/**
+	 * Steps through process of receiving signed encrypted message
+	 */
 	public void stepThroughReceive() {
-		byte[] signedEncryptedData = vpnInstance.receivedData;
+		byte[] signedEncryptedData = vpnInstance.getReceivedBytes();
 		byte[] encryptedData = new byte[0];
 		String message = "";
 		
 		switch (this.vpnInstance.dataReceiveState) {
 		case Idle:
-			log("Preparing to unsign " + vpnInstance.receivedData);
+			log("Preparing to unsign " + vpnInstance.getReceivedBytes());
 			this.vpnInstance.dataReceiveState = VPNEntity.DataReceiveState.Unsign;
 			break;
 		case Unsign:
@@ -214,11 +192,18 @@ public class VPNManager {
 		}
 	}
 	
+	/**
+	 * Sets variable to coordinate step through each step of receiving data
+	 * @param b
+	 */
 	public void setStepThroughReceive(Boolean b) {
-		System.out.println("setting step through receive: " + b);
 		this.vpnInstance.stepThroughReceive = b;
 	}
 	
+	/**
+	 * Returns the internal ip address
+	 * @return
+	 */
 	public String getServerIP() {
 		try {
 			InetAddress IP = InetAddress.getLocalHost();
@@ -230,6 +215,9 @@ public class VPNManager {
 		return "";
 	}
 	
+	/**
+	 * Tears down all connections and ends all threads
+	 */
 	public void closeVPN() {
 		if(this.vpnInstance != null) {
 			System.out.println("Closing vpn and ending threads!");
@@ -241,6 +229,49 @@ public class VPNManager {
 				logError(e.toString());
 			}
 		}
+	}
+	
+	
+	private void setupVPNInstance() {
+		this.logHeader("SETUP");
+		this.log("Setting up vpn instance...");
+		this.log("Generating symmetric key...");
+		try {
+			log("The symmetric key is: " + this.vpnInstance.calcSymmetricKey());
+		} catch (NoSuchAlgorithmException e) {
+			//e.printStackTrace();
+			this.logError(e.toString());
+		} catch (NoSuchPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.logError(e.toString());
+		}
+		
+		this.log("Generating asymmetric key...");
+		try {
+			KeyPair kp = this.vpnInstance.calcAsymmetricKey();
+			log("The public key is: " + kp.getPublic().toString());
+			log("The private key is: " + kp.getPrivate().toString());
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			//e1.printStackTrace();
+			this.logError(e1.toString());
+		}
+		
+		this.log("Creating thread to setup connection...");
+		this.vpnInstance.setupConnection();
+	}
+	
+	private void log(String msg) {
+		this.ui.logMessage(msg);
+	}
+	
+	private void logError(String msg) {
+		this.ui.logError(msg);
+	}
+	
+	private void logHeader(String header) {
+		this.ui.logHeader(header);
 	}
 	
 }

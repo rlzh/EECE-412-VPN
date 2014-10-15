@@ -51,8 +51,7 @@ public class MessageHandler implements Runnable {
 					signedEncryptedData = this.instance.receiveMessage();
 					ui.logMessageAsync("Receiving signed encrypted data: " + signedEncryptedData);
 					
-					System.out.println("set through receive is :" + this.instance.stepThroughReceive);
-					
+					// check if step through receive is enabled 
 					if(!this.instance.stepThroughReceive) {
 						// unsign encrypted data
 						ui.logMessageAsync("Unsigning " + signedEncryptedData + "...");
@@ -67,8 +66,9 @@ public class MessageHandler implements Runnable {
 						// display message received in message received box
 						ui.displayDataReceivedAsync(message);
 					} else {
-						this.instance.receivedData = new byte[0];
-						this.instance.receivedData = signedEncryptedData;
+						// step through enabled, so don't do auto unsign and decryption
+						this.instance.setReceivedBytes(new byte[0]);
+						this.instance.setReceivedBytes(signedEncryptedData);
 					}
 					
 				}
